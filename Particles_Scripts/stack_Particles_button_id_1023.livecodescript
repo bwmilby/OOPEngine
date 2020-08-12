@@ -79,6 +79,8 @@ setProp emittorType pType
 end emittorType
 
 setProp emittorData pTypeData
+   local dx, dy
+   
    put pTypeData into _typeData
    if _type is "line" then
       put item 3 of pTypeData - item 1 of pTypeData into dx
@@ -89,10 +91,12 @@ setProp emittorData pTypeData
 end emittorData
 
 on animate
+   local dx, dy, tx, ty
+   local tDistance
    if _isRunning and the milliseconds > _nextParticle then
       # We should create a new particle
       add 1 to _particleCounter
-      put newObject(_particleClass) into _particles[_particleCounter]
+      put newObject(_particleClass, _particleClass) into _particles[_particleCounter]
       if _xSpeedMax > _xSpeedMin then
          put random(_xSpeedMax - _xSpeedMin) + _xSpeedMin into dx
       else
@@ -115,10 +119,11 @@ on animate
       put the milliseconds + _birthRate into _nextParticle
    end if
    repeat for each key aParticle in _particles
-      if the isAlive of _particles[aParticle] then
+      dispatch function "isAlive?" to _particles[aParticle]
+      if the result is true then
          send "animate" to _particles[aParticle]
       else
-         send "die" to _particles[aParticle]
+         --send "die" to _particles[aParticle]
          deleteObject(_particles[aParticle])
          delete variable _particles[aParticle]
       end if

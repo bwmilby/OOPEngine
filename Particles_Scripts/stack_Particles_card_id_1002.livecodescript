@@ -10,6 +10,7 @@ local _emittor
 local _simulationRunning
 
 on preOpenCard
+   local tImgList
    repeat with i = 1 to the number of images of card "images"
       put the short name of image i of card "images" & return after tImgList
    end repeat
@@ -18,12 +19,15 @@ on preOpenCard
 end preOpenCard
 
 on startSimulation
+   local tImageName
+   local tParticleType
+   local tPoints
    set the acceleratedRendering of this stack to true # Oh boy, we need this!
-   put newObject("emittor", "emittor") into _emittor # Create a new emittor object!
+   put newObject("Emittor", "Emittor") into _emittor # Create a new emittor object!
    dispatch "fadeParticlesOverLife" to _emittor with the hilite of button "Fade Particles over Life"
    put the hilitedText of button "imageSource" into tImageName
    put the hilitedText of button "particleType" into tParticleType
-   if tParticleType is normal then put empty into tParticleType
+   if tParticleType is "normal" then put empty into tParticleType
    put tParticleType & "Particle" into tParticleType
    dispatch "startEmittor" to _emittor with the width of this stack/2, the height of this stack/2, \
          the minValue of group "maxMinX",the maxValue of group "MaxMinX", \
@@ -142,11 +146,18 @@ on escapeKey
    stopSimulation
 end escapeKey
 
-on setParticleSource 
-   set the particleSource of _emittor to the long id of image (the hilitedtext of button "imageSource") of card "Images"
+on setParticleSource pSource
+   local tSource
+   
+   put the long id of image pSource of card "Images" into tSource
+   if _emittor is not empty then
+      set the particleSource of _emittor to tSource
+   end if
 end setParticleSource
 
 on setParticleType pClass
    if pClass is "normal" then put empty into pClass
-   set the particleType of _emittor to (pClass & "Particle")
+   if _emittor is not empty then
+      set the particleType of _emittor to (pClass & "Particle")
+   end if
 end setParticleType

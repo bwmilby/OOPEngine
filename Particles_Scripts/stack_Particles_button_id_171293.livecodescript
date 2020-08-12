@@ -7,5 +7,5 @@ Script "stack_Particles_button_id_171293"
 
 
 on menuPick pItemName
-   setParticleSource
+   setParticleSource pItemName
 end menuPick
