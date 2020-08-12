@@ -30,8 +30,8 @@ function gravity
    return _gravity
 end gravity
 
-on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
-   dispatch "birth" to the behavior of me with px, py, pdX, pdY, pLifeSpan, pParticleSource
+after birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
+   --dispatch "birth" to the behavior of this me with px, py, pdX, pdY, pLifeSpan, pParticleSource
    if pGravity is empty then
       set the gravity of me to 1
    else
@@ -39,12 +39,10 @@ on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
    end if
 end birth
 
-on animate
-   put the short name of me && param(0) & cr after msg
-   
+before animate
    set the dy of me to the dy of me + _gravity
    -- or if messages need to be locked...
    --set the dy of me to dy() + _gravity
    # Call superclass animate
-   dispatch "animate" to the behavior of me
+   --dispatch "animate" to the behavior of this me
 end animate

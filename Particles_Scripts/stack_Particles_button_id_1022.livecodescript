@@ -35,11 +35,9 @@ on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource
    put pLifeSpan into _lifeSpan
    put the milliseconds + pLifeSpan into _deathMoment
    put the milliseconds into _birthTime
-   --put the short name of me && param(0) && _deathMoment & cr after msg
 end birth
 
 on animate
-   put the short name of me && param(0) & cr after msg
    if the milliseconds < _deathMoment then
       set the loc of _particleID to item 1 of the loc of _particleID + _dx, item 2 of the loc of _particleID + _dy
       if _fadeOverLife then
@@ -49,7 +47,6 @@ on animate
 end animate
 
 function isAlive?
-   --put the target && param(0) && _deathMoment & cr after msg
    return _deathMoment > the milliseconds
 end isAlive?
 
