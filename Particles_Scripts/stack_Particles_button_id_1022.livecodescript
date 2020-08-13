@@ -19,8 +19,36 @@ local _lifeSpan
 # Base class for particles
 #
 
+command constructor pClass
+   local tSuperClass
+   if pClass is not empty then
+      if pClass is not the short name of this me then
+         pass constructor
+      end if
+   end if
+   --
+   # pass up the behavior chain first
+   put the behavior of this me into tSuperClass
+   if tSuperClass is not empty then
+      dispatch "constructor" to me with the short name of tSuperClass
+   end if
+   --
+   # then do the most local constructor tasks
+   # put the short name of this me && param(0) && the id of the target & cr after msg
+end constructor
+
 command destructor
+   local tSuperClass
+   put the behavior of this me into tSuperClass
+   --
+   # do the local destructor tasks first
    die
+   # put the short name of this me && param(0) && the id of the target & cr after msg
+   --
+   # then pass up the message chain
+   if tSuperClass is not empty then
+      pass destructor
+   end if
 end destructor
 
 on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource

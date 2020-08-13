@@ -19,7 +19,7 @@ Script "stack_OOPEngine_"
 # added class constructors and destructors
 ###############################
 
-constant kVersion = 1.01
+constant kVersion = 1.02
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
 
@@ -105,15 +105,22 @@ function newObject pClass, pName
 end newObject
 
 # example class constructor
-command constructor
+command constructor pClass
+   local tSuperClass
+   if pClass is not empty then
+      if pClass is not the short name of this me then
+         pass constructor
+      end if
+   end if
+   --
    # pass up the behavior chain first
-   if the behavior of me is not empty then
-      dispatch "constructor" to the behavior of me
+   put the behavior of this me into tSuperClass
+   if tSuperClass is not empty then
+      dispatch "constructor" to me with the short name of tSuperClass
    end if
+   --
    # then do the most local constructor tasks
-   if the id of the target is the id of this me then
-      # put the short name of me && param(0) && the id of the target & cr after msg
-   end if
+   # put the short name of this me && param(0) && the id of the target & cr after msg
 end constructor
 
 # MDW 2020.08.04: deleting the owner object doesn't seem right
@@ -134,13 +141,15 @@ end deleteObject
 
 # example class destructor
 command destructor
+   local tSuperClass
+   put the behavior of this me into tSuperClass
+   --
    # do the local destructor tasks first
-   if the id of the target is the id of this me then
-      # put the short name of me && param(0) && the id of the target & cr after msg
-   end if
+   # put the short name of this me && param(0) && the id of the target & cr after msg
+   --
    # then pass up the message chain
-   if the behavior of me is not empty then
-      dispatch "destructor" to the behavior of me
+   if tSuperClass is not empty then
+      pass destructor
    end if
 end destructor
 
