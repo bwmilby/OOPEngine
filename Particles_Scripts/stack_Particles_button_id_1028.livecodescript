@@ -17,63 +17,32 @@ Script "stack_Particles_button_id_1028"
 local _gravity
 
 setProp gravity pGravity
-   if pGravity is a number then
-      put pGravity into _gravity
-   end if
+  if pGravity is a number then
+     put pGravity into _gravity
+  end if
 end gravity
 
 getProp gravity
-   return _gravity
+  return _gravity
 end gravity
 
 function gravity
-   return _gravity
+  return _gravity
 end gravity
 
-command constructor pClass
-   local tSuperClass
-   if pClass is not empty then
-      if pClass is not the short name of this me then
-         pass constructor
-      end if
-   end if
-   --
-   # pass up the behavior chain first
-   put the behavior of this me into tSuperClass
-   if tSuperClass is not empty then
-      dispatch "constructor" to me with the short name of tSuperClass
-   end if
-   --
-   # then do the most local constructor tasks
-   # put the short name of this me && param(0) && the id of the target & cr after msg
-end constructor
-
-command destructor
-   local tSuperClass
-   put the behavior of this me into tSuperClass
-   --
-   # do the local destructor tasks first
-   # put the short name of this me && param(0) && the id of the target & cr after msg
-   --
-   # then pass up the message chain
-   if tSuperClass is not empty then
-      pass destructor
-   end if
-end destructor
-
-after birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
-   --dispatch "birth" to the behavior of this me with px, py, pdX, pdY, pLifeSpan, pParticleSource
+on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
+   --put the id of the target && the id of this me && param(0) & cr after msg
    if pGravity is empty then
-      set the gravity of me to 1
+      set the gravity of me to random(16)
    else
       set the gravity of me to pGravity
    end if
+   pass birth
 end birth
 
-before animate
+on animate
+   --put the id of the target && the id of this me && param(0) & cr after msg
    set the dy of me to the dy of me + _gravity
-   -- or if messages need to be locked...
-   --set the dy of me to dy() + _gravity
    # Call superclass animate
-   --dispatch "animate" to the behavior of this me
+   pass animate
 end animate

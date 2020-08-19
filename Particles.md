@@ -87,3 +87,8 @@
 * Behavior: button id 1022 of stack "Particles"
 * [stack_Particles_button_id_183672](./Particles_Scripts/stack_Particles_button_id_183672.livecodescript)
 
+**button "FuzzyGravityParticle" of card "Classes" of stack "Particles"**
+* ID: button id 311682 of card id 1004 of stack "Particles"
+* Behavior: button id 1028 of stack "Particles"
+* [stack_Particles_button_id_311682](./Particles_Scripts/stack_Particles_button_id_311682.livecodescript)
+

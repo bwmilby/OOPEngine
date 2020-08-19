@@ -19,13 +19,31 @@ Script "stack_OOPEngine_"
 # added class constructors and destructors
 ###############################
 
-constant kVersion = 1.02
+constant kVersion = 1.01
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
 
 function OOPversion
    return "OOP Engine version" && kVersion
 end OOPversion
+
+function superClass
+   local tSuperClass
+   
+   if the behavior of the target is not empty then
+      put the behavior of the target into tSuperClass
+   end if
+   return tSuperClass
+end superClass
+
+command superClass pCommand
+   local tBehavior
+   
+   put superClass() into tBehavior
+   if tBehavior is not empty then
+      dispatch pCommand to tBehavior
+   end if
+end superClass
 
 function newClass pClassName, pSuperClass
    if exists(button pClassName of card kClassStorage) then
@@ -88,39 +106,26 @@ function newObject pClass, pName
    local tNewObject
    
    if exists(button pClass of card "Classes") then
-      set the visible of the templategroup to false # Make it "truly" invisible
-      set the margins of the templategroup to 0 # Make it "truly" invisible
-      if pName is not empty then
-         create group pName
-      end if
-      put the id of the last group into tNewObject
-      set the behavior of control id tNewObject to the long id of button pClass of card kClassStorage
-      reset the templategroup
-      # call the class constructor if it exists
-      dispatch "constructor" to control id tNewObject
-      return the long id of control id tNewObject
+      create button pName
+      put the long id of it into tNewObject
+      set the behavior of tNewObject to the long id of button pClass of card kClassStorage
+      dispatch "constructor" to tNewObject
+      return tNewObject
    else
       throw "Class " & pClass & ": no such class"
    end if
 end newObject
 
 # example class constructor
-command constructor pClass
-   local tSuperClass
-   if pClass is not empty then
-      if pClass is not the short name of this me then
-         pass constructor
-      end if
-   end if
-   --
+command constructor
    # pass up the behavior chain first
-   put the behavior of this me into tSuperClass
-   if tSuperClass is not empty then
-      dispatch "constructor" to me with the short name of tSuperClass
+   if the behavior of me is not empty then
+      dispatch "constructor" to the behavior of me
    end if
-   --
    # then do the most local constructor tasks
-   # put the short name of this me && param(0) && the id of the target & cr after msg
+   if the id of the target is the id of this me then
+      # put the short name of me && param(0) && the id of the target & cr after msg
+   end if
 end constructor
 
 # MDW 2020.08.04: deleting the owner object doesn't seem right
@@ -131,7 +136,7 @@ on deleteObject pObject
       delete pObject
    else
       # Maybe we got just an object name?
-      if exists(group pObject) then
+      if exists(button pObject) then
          deleteObject(the long id of group pObject)
       else
          throw "Object " & pObject & ": no such object"
@@ -141,15 +146,13 @@ end deleteObject
 
 # example class destructor
 command destructor
-   local tSuperClass
-   put the behavior of this me into tSuperClass
-   --
    # do the local destructor tasks first
-   # put the short name of this me && param(0) && the id of the target & cr after msg
-   --
+   if the id of the target is the id of this me then
+      # put the short name of me && param(0) && the id of the target & cr after msg
+   end if
    # then pass up the message chain
-   if tSuperClass is not empty then
-      pass destructor
+   if the behavior of me is not empty then
+      dispatch "destructor" to the behavior of me
    end if
 end destructor
 

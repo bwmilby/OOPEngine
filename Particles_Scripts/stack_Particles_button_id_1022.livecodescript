@@ -19,41 +19,18 @@ local _lifeSpan
 # Base class for particles
 #
 
-command constructor pClass
-   local tSuperClass
-   if pClass is not empty then
-      if pClass is not the short name of this me then
-         pass constructor
-      end if
-   end if
-   --
-   # pass up the behavior chain first
-   put the behavior of this me into tSuperClass
-   if tSuperClass is not empty then
-      dispatch "constructor" to me with the short name of tSuperClass
-   end if
-   --
-   # then do the most local constructor tasks
-   # put the short name of this me && param(0) && the id of the target & cr after msg
+command constructor
+   --put the id of the target && the id of this me && param(0) & cr after msg
+   pass constructor
 end constructor
 
 command destructor
-   local tSuperClass
-   put the behavior of this me into tSuperClass
-   --
-   # do the local destructor tasks first
-   die
-   # put the short name of this me && param(0) && the id of the target & cr after msg
-   --
-   # then pass up the message chain
-   if tSuperClass is not empty then
-      pass destructor
-   end if
+   send "die" to me in 0 milliseconds
 end destructor
 
 on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource
-   create button
-   put the long id of the last button into _particleID
+   --put the id of the target && the id of this me && param(0) & cr after msg
+   put the long id of the target into _particleID
    set the icon of _particleID to the id of pParticleSource
    set the loc of _particleID to (px,pY)
    set the width of _particleID to the width of pParticleSource
@@ -63,13 +40,21 @@ on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource
    put pLifeSpan into _lifeSpan
    put the milliseconds + pLifeSpan into _deathMoment
    put the milliseconds into _birthTime
+   return _particleID
 end birth
 
 on animate
+   --put the id of the target && the id of this me && param(0) & cr after msg
+   local tLoc
    if the milliseconds < _deathMoment then
-      set the loc of _particleID to item 1 of the loc of _particleID + _dx, item 2 of the loc of _particleID + _dy
+      put the loc of _particleID into tLoc
+      add _dx to item 1 of tLoc
+      add _dy to item 2 of tLoc
+      set the loc of _particleID to tLoc
       if _fadeOverLife then
-         set the blendLevel of _particleID to round(100*(the milliseconds - _birthTime) / _lifeSpan)
+         if _lifeSpan > 0 then
+            set the blendLevel of the target to round(100*(the milliseconds - _birthTime) / _lifeSpan)
+         end if
       end if
    end if
 end animate
@@ -78,7 +63,7 @@ function isAlive?
    return _deathMoment > the milliseconds
 end isAlive?
 
-private command die
+command die
    if _particleID is not empty then
       delete _particleID
    end if
@@ -93,7 +78,7 @@ setProp dX pdX
 end dX
 
 getProp dx
-   return _dx
+  return _dx
 end dx
 
 command setdxTo pdX
@@ -111,7 +96,7 @@ setProp dY pdY
 end dY
 
 getProp dY
-   return _dy
+  return _dy
 end dY
 
 # getters and setters

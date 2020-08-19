@@ -93,10 +93,13 @@ end emittorData
 on animate
    local dx, dy, tx, ty
    local tDistance
+   local tNewObject
+   
    if _isRunning and the milliseconds > _nextParticle then
       # We should create a new particle
       add 1 to _particleCounter
-      put newObject(_particleClass, _particleClass) into _particles[_particleCounter]
+      put newObject(_particleClass, _particleClass) into tNewObject
+      put tNewObject into _particles[_particleCounter]
       if _xSpeedMax > _xSpeedMin then
          put random(_xSpeedMax - _xSpeedMin) + _xSpeedMin into dx
       else
@@ -107,23 +110,30 @@ on animate
       else
          put 0 into dy
       end if
-      if _Type is empty then
-         dispatch "birth" to _particles[_particleCounter] with  _emitX, _emitY, dx, dy, _lifeSpan, _particleSource
-      else if _Type is "line" then
-         put random(item 6 of _typeData) into tDistance
-         put item 1 of _typeData +  tDistance*sin(item 5 of _typeData) into tx
-         put item 2 of _typeData +  tDistance*cos(item 5 of _typeData) into ty
-         dispatch "birth" to _particles[_particleCounter] with  tx, tY, dx, dy, _lifeSpan, _particleSource
-      end if
-      set the fadeOverLife of _particles[_particleCounter] to _fadeParticlesOverLife
+      switch _Type
+         case empty
+            put _emitX into tx
+            put _emitY into ty
+            break
+         case "line"
+            put random(item 6 of _typeData) into tDistance
+            put item 1 of _typeData +  tDistance*sin(item 5 of _typeData) into tx
+            put item 2 of _typeData +  tDistance*cos(item 5 of _typeData) into ty
+      end switch
+      dispatch "birth" to tNewObject with  tx, tY, dx, dy, _lifeSpan, _particleSource
+      
+      set the fadeOverLife of tNewObject to _fadeParticlesOverLife
       put the milliseconds + _birthRate into _nextParticle
    end if
-   repeat for each key aParticle in _particles
+   
+   local tKeys
+   put the keys of _particles into tKeys
+   sort tKeys numeric descending
+   repeat for each line aParticle in tKeys
       dispatch function "isAlive?" to _particles[aParticle]
       if the result is true then
-         send "animate" to _particles[aParticle]
+         dispatch "animate" to _particles[aParticle]
       else
-         --send "die" to _particles[aParticle]
          deleteObject(_particles[aParticle])
          delete variable _particles[aParticle]
       end if

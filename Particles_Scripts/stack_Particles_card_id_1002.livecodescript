@@ -23,7 +23,7 @@ on startSimulation
    local tParticleType
    local tPoints
    set the acceleratedRendering of this stack to true # Oh boy, we need this!
-   put newObject("Emittor", "Emittor") into _emittor # Create a new emittor object!
+   put the long id of button "Emittor" of card "Classes" into _emittor
    dispatch "fadeParticlesOverLife" to _emittor with the hilite of button "Fade Particles over Life"
    put the hilitedText of button "imageSource" into tImageName
    put the hilitedText of button "particleType" into tParticleType
@@ -70,8 +70,6 @@ on runSimulation
          send "animate" to _emittor
          send "runSimulation" to me in 0 milliseconds
       else
-         deleteObject _emittor
-         put empty into _emittor
          set the acceleratedRendering of this stack to false
       end if
    end if

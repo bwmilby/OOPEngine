@@ -1,16 +1,16 @@
-Script "stack_Particles_button_id_183672"
+Script "stack_Particles_button_id_311682"
 
 /*
-# Name: button "FuzzyParticle" of card "Classes" of stack "Particles"
-# ID: button id 183672 of card id 1004 of stack "Particles"
-# Behavior: button id 1022 of stack "Particles"
+# Name: button "FuzzyGravityParticle" of card "Classes" of stack "Particles"
+# ID: button id 311682 of card id 1004 of stack "Particles"
+# Behavior: button id 1028 of stack "Particles"
 */
 
 
 ###############################################################
 #
-# Class: Fuzziness
-# Inherits: Particle
+# Class: FuzzyGravity
+# Inherits: GravityParticle
 #
 # overrides birth and animate and adds a new property "fuzziness"
 
@@ -29,6 +29,7 @@ getProp fuzziness
 end fuzziness
 
 on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pFuzziness
+   --put the id of the target && the id of this me && param(0) & cr after msg
    if pfuzziness is empty then
       set the fuzziness of me to 6
    else
@@ -38,8 +39,9 @@ on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pFuzziness
 end birth
 
 on animate
+   --put the id of the target && the id of this me && param(0) & cr after msg
    set the dy of me to the dy of me + random(_fuzziness)-_fuzziness2
    set the dx of me to the dx of me + random(_fuzziness)-_fuzziness2
-   # Call superclass animate
+   # Call superclass
    pass animate
 end animate
