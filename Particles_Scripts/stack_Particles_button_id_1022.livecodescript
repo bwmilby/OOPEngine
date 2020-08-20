@@ -21,11 +21,10 @@ local _lifeSpan
 
 command constructor
    --put the id of the target && the id of this me && param(0) & cr after msg
-   pass constructor
 end constructor
 
 command destructor
-   send "die" to me in 0 milliseconds
+   --put param(0) & cr after msg
 end destructor
 
 on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource
@@ -63,11 +62,12 @@ function isAlive?
    return _deathMoment > the milliseconds
 end isAlive?
 
-command die
-   if _particleID is not empty then
-      delete _particleID
-   end if
-end die
+--command die
+--   put param(0) & cr after msg
+--   if _particleID is not empty then
+--      delete _particleID
+--   end if
+--end die
 
 # accessors to make class variables public
 

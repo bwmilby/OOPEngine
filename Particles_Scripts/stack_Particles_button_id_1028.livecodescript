@@ -16,6 +16,10 @@ Script "stack_Particles_button_id_1028"
 
 local _gravity
 
+--command constructor
+--   put the id of the target && the id of this me && param(0) & cr after msg
+--end constructor
+
 setProp gravity pGravity
   if pGravity is a number then
      put pGravity into _gravity

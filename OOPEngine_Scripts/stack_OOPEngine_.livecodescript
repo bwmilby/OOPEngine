@@ -19,7 +19,7 @@ Script "stack_OOPEngine_"
 # added class constructors and destructors
 ###############################
 
-constant kVersion = 1.01
+constant kVersion = 1.02
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
 
@@ -34,15 +34,6 @@ function superClass
       put the behavior of the target into tSuperClass
    end if
    return tSuperClass
-end superClass
-
-command superClass pCommand
-   local tBehavior
-   
-   put superClass() into tBehavior
-   if tBehavior is not empty then
-      dispatch pCommand to tBehavior
-   end if
 end superClass
 
 function newClass pClassName, pSuperClass
@@ -102,19 +93,117 @@ command incrementReferenceCount
    set the referenceCount of the target to tReferenceCount
 end incrementReferenceCount
 
-function newObject pClass, pName
+function newObject pClass, pName, pType
    local tNewObject
    
    if exists(button pClass of card "Classes") then
-      create button pName
-      put the long id of it into tNewObject
+      # this switch statment exists because we can't say create pType
+      switch pType
+         case "stack"
+            put newStack(pName) into tNewObject
+            break
+         case "card"
+            put newCard(pName) into tNewObject
+            break
+         case "background"
+            set the backgroundBehavior of the templategroup to true
+         case "group"
+            put newGroup(pName) into tNewObject
+            reset the templategroup
+            break
+         default
+         case "button"
+            put newButton(pName) into tNewObject
+            break
+         case "field"
+            put newField(pName) into tNewObject
+            break
+         case "image"
+            put newImage(pName) into tNewObject
+            break
+         case "scrollbar"
+            put newScrollbar(pName) into tNewObject
+            break
+         case "graphic"
+            put newGraphic(pName) into tNewObject
+            break
+         case "player"
+            put newPlayer(pName) into tNewObject
+            break
+      end switch
       set the behavior of tNewObject to the long id of button pClass of card kClassStorage
-      dispatch "constructor" to tNewObject
+      
+      # call the class constructors in order
+      invokeConstructorsOf tNewObject
       return tNewObject
    else
       throw "Class " & pClass & ": no such class"
    end if
 end newObject
+
+private command invokeConstructorsOf pObject
+   # get the behavior chain for the constructors
+   local tClass, tClassList
+   put the behavior of pObject into tClass
+   
+   repeat while tClass is not empty
+      put tClass & cr before tClassList
+      put the behavior of tClass into tClass
+   end repeat
+   delete the last char of tClassList
+   
+   # call the class constructors in order
+   repeat for each line tClass in tClassList
+      dispatch "constructor" to tClass
+   end repeat
+end invokeConstructorsOf
+
+# these all exist because we can't say create <expression>
+
+private function newStack pName
+   create stack pName
+   return the long id of it
+end newStack
+
+private function newCard pName
+   create card pName
+   return the long id of it
+end newCard
+
+private function newGroup pName
+   create group pName
+   return the long id of it
+end newGroup
+
+private function newButton pName
+   create button pName
+   return the long id of it
+end newButton
+
+private function newField pName
+   create field pName
+   return the long id of it
+end newField
+
+private function newImage pName
+   create image pName
+   return the long id of it
+end newImage
+
+private function newScrollbar pName
+   create scrollbar pName
+   return the long id of it
+end newScrollbar
+
+private function newGraphic pName
+   create graphic pName
+   return the long id of it
+end newGraphic
+
+private function newPlayer pName
+   create player pName
+   return the long id of it
+end newPlayer
 
 # example class constructor
 command constructor
