@@ -22,10 +22,25 @@ Script "stack_OOPEngine_"
 constant kVersion = 1.02
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
+local sClassA -- index of class names to button long id
 
 function OOPversion
    return "OOP Engine version" && kVersion
 end OOPversion
+
+# Add classes from specified card to class index
+command registerClasses pCard, pUpdateClasses
+   local tName, tLongID
+   repeat with tID=1 to the number of buttons on pCard
+      put the short name of button tID of pCard into tName
+      put the long id of button tID of pCard into tLongID
+      if sClassA[tName] is not empty and pUpdateClasses is not true \
+            and sClassA[tName] is not tLongID then
+         throw "class" && tName && "already exists in index"
+      end if
+      put tLongID into sClassA[tName]
+   end repeat
+end registerClasses
 
 function newClass pClassName, pSuperClass
    if exists(button pClassName of card kClassStorage) then
@@ -35,6 +50,7 @@ function newClass pClassName, pSuperClass
       if pSuperClass is not empty then
          set the behavior of button pClassName to the long id of button pSuperClass of card kClassStorage
       end if
+      put the long id of button pClassName of card kClassStorage into sClassA[pClassName]
       return the id of button pClassName of card kClassStorage
    end if
 end newClass
@@ -55,6 +71,7 @@ command deleteClass pClassName
       dispatch function "decrementReferenceCount" to button pClassName of card kClassStorage
       if the result is 0 then
          delete button pClassName of card kClassStorage
+         delete variable sClassA[pClassName]
       else
          throw "Class" && pClassName && "is still in use, so can't be deleted"
       end if
@@ -85,19 +102,27 @@ command incrementReferenceCount
 end incrementReferenceCount
 
 function newObject pClass, pName
-   local tNewObject
+   local tNewObject, tClassList, tSuperClass
    
-   if exists(button pClass of card "Classes") then
+   if sClassA[pClass] is not empty then
       set the visible of the templategroup to false # Make it "truly" invisible
       set the margins of the templategroup to 0 # Make it "truly" invisible
       if pName is not empty then
          create group pName
       end if
       put the id of the last group into tNewObject
-      set the behavior of control id tNewObject to the long id of button pClass of card kClassStorage
+      set the behavior of control id tNewObject to sClassA[pClass]
       reset the templategroup
-      # call the class constructor if it exists
-      dispatch "constructor" to control id tNewObject
+      # call the class constructors in order
+      put pClass into tClassList
+      put the behavior of sClassA[pClass] into tSuperClass
+      repeat while tSuperClass is not empty
+         put the short name of tSuperClass & lf before tClassList
+         put the behavior of tSuperClass into tSuperClass
+      end repeat
+      repeat for each line tClass in tClassList
+         dispatch tClass to control id tNewObject
+      end repeat
       return the long id of control id tNewObject
    else
       throw "Class " & pClass & ": no such class"
@@ -105,21 +130,8 @@ function newObject pClass, pName
 end newObject
 
 # example class constructor
-command constructor pClass
-   local tSuperClass
-   if pClass is not empty then
-      if pClass is not the short name of this me then
-         pass constructor
-      end if
-   end if
-   --
-   # pass up the behavior chain first
-   put the behavior of this me into tSuperClass
-   if tSuperClass is not empty then
-      dispatch "constructor" to me with the short name of tSuperClass
-   end if
-   --
-   # then do the most local constructor tasks
+# the handler names should be the same as the class name
+command constructor
    # put the short name of this me && param(0) && the id of the target & cr after msg
 end constructor
 
@@ -181,7 +193,7 @@ end messageObject
 
 function isObject? pObject
    if exists(pObject) and exists(the behavior of pObject) then
-      if exists( button (the short name of the behavior of pObject) of card kClassStorage) then
+      if sClassA[the short name of the behavior of pObject] is not empty then
          return true
       end if
    end if

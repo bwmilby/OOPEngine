@@ -9,6 +9,7 @@ Script "stack_Particles_"
 on preOpenStack
    if "OOPEngine" is among the lines of the openStacks then
       start using stack "OOPengine"
+      registerClasses the long id of card "Classes", true
    else
       answer "This stack requires the OOPEngine to run"
    end if

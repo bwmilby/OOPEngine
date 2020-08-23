@@ -45,10 +45,6 @@
 * ID: button id 66674 of group id 79210 of card id 1002 of stack "Particles"
 * [stack_Particles_button_id_66674](./Particles_Scripts/stack_Particles_button_id_66674.livecodescript)
 
-**graphic "Line" of group "Line" of group "controls" of card id 1002 of stack "Particles"**
-* ID: graphic id 137208 of group id 137207 of group id 79210 of card id 1002 of stack "Particles"
-* [stack_Particles_graphic_id_137208](./Particles_Scripts/stack_Particles_graphic_id_137208.livecodescript)
-
 **button "Point 1" of group "Line" of group "controls" of card id 1002 of stack "Particles"**
 * ID: button id 137209 of group id 137207 of group id 79210 of card id 1002 of stack "Particles"
 * [stack_Particles_button_id_137209](./Particles_Scripts/stack_Particles_button_id_137209.livecodescript)

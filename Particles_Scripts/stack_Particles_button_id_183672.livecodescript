@@ -28,18 +28,18 @@ getProp fuzziness
    return _fuzziness
 end fuzziness
 
-after birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pFuzziness
-   --dispatch "birth" to the behavior of this me with px, py, pdX, pdY, pLifeSpan, pParticleSource
+command birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pFuzziness
    if pfuzziness is empty then
       set the fuzziness of me to 6
    else
       set the fuzziness of me to pFuzziness
    end if
+   pass birth
 end birth
 
-before animate
+command animate
    set the dy of me to the dy of me + random(_fuzziness)-_fuzziness2
    set the dx of me to the dx of me + random(_fuzziness)-_fuzziness2
    # Call superclass animate
-   --dispatch "animate" to the behavior of this me
+   pass animate
 end animate

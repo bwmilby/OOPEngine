@@ -30,23 +30,10 @@ function gravity
    return _gravity
 end gravity
 
-command constructor pClass
-   local tSuperClass
-   if pClass is not empty then
-      if pClass is not the short name of this me then
-         pass constructor
-      end if
-   end if
-   --
-   # pass up the behavior chain first
-   put the behavior of this me into tSuperClass
-   if tSuperClass is not empty then
-      dispatch "constructor" to me with the short name of tSuperClass
-   end if
-   --
-   # then do the most local constructor tasks
+# constructor
+command GravityParticle
    # put the short name of this me && param(0) && the id of the target & cr after msg
-end constructor
+end GravityParticle
 
 command destructor
    local tSuperClass
@@ -61,19 +48,19 @@ command destructor
    end if
 end destructor
 
-after birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
-   --dispatch "birth" to the behavior of this me with px, py, pdX, pdY, pLifeSpan, pParticleSource
+command birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
    if pGravity is empty then
       set the gravity of me to 1
    else
       set the gravity of me to pGravity
    end if
+   pass birth
 end birth
 
-before animate
+command animate
    set the dy of me to the dy of me + _gravity
    -- or if messages need to be locked...
    --set the dy of me to dy() + _gravity
    # Call superclass animate
-   --dispatch "animate" to the behavior of this me
+   pass animate
 end animate
