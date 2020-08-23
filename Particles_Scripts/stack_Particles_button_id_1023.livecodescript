@@ -98,7 +98,7 @@ on animate
    if _isRunning and the milliseconds > _nextParticle then
       # We should create a new particle
       add 1 to _particleCounter
-      put newObject(_particleClass, _particleClass) into tNewObject
+      put newObject(_particleClass, _particleClass, "button") into tNewObject
       put tNewObject into _particles[_particleCounter]
       if _xSpeedMax > _xSpeedMin then
          put random(_xSpeedMax - _xSpeedMin) + _xSpeedMin into dx

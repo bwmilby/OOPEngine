@@ -12,14 +12,16 @@ Script "stack_OOPEngine_"
 # original by Håkan Liljegren 2012
 # modified by Mark Wieder 2020
 
-# classes are buttons, objects are groups
+# classes are buttons, objects by default are groups
 # dispatch has a tristate return value: handled, passed, unhandled
 # added newClass and deleteClass operators
 # added reference count for class deletion
 # added class constructors and destructors
+# there is now a Classes card for classes expected to be in general use
+# local classes are checked first: if no match then the global classes are checked
 ###############################
 
-constant kVersion = 1.02
+constant kVersion = 1.04
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
 
@@ -36,23 +38,54 @@ function superClass
    return tSuperClass
 end superClass
 
+private function classExists pClassName
+   local tClassID
+   
+   # check for a local class first.
+   # this allows for overriding/overloading the more global classes if desired.
+   if exists(control pClassName of card kClassStorage of the defaultStack) then
+      put the long id of control pClassName of card kClassStorage of the defaultStack into tClassID
+      # if there's nothing locally then check the global classes
+   else if exists(control pClassName of card kClassStorage of me) then
+      put the long id of control pClassName of card kClassStorage of me into tClassID
+   else
+      put empty into tClassID
+   end if
+   return tClassID
+end classExists
+
+private function classIDFromName pClassName
+   local tClassID
+   
+   put classExists(pClassName) into tClassID
+   if tClassID is empty then
+      throw "Class" && pClassName && "not found"
+   end if
+   return tClassID
+end classIDFromName
+
 function newClass pClassName, pSuperClass
-   if exists(button pClassName of card kClassStorage) then
+   local tClassID
+   
+   if classExists(pClassName) then
       throw "class" && pClassName && "already exists"
    else
-      create button pClassName of card kClassStorage
+      go card kClassStorage
+      create button pClassName
       if pSuperClass is not empty then
-         set the behavior of button pClassName to the long id of button pSuperClass of card kClassStorage
+         set the behavior of control pClassName to the long id of control pSuperClass of card kClassStorage of me
       end if
-      return the id of button pClassName of card kClassStorage
+      return the id of control pClassName of card kClassStorage of me
    end if
 end newClass
 
 command deleteClass pClassName
    local tSuperClass
+   local tClassID
    
-   if exists(button pClassName of card kClassStorage) then
-      put the behavior of button pClassName into tSuperClass
+   put classIDFromName(pClassName) into tClassID
+   if tClassID is not empty then
+      put the behavior of control pClassName into tSuperClass
       # not sure if deleting the superclass is a good idea either
       if kAllowCascadingDeletes then
          if tSuperClass is not empty then
@@ -61,9 +94,10 @@ command deleteClass pClassName
          end if
       end if
       # finally delete this class
-      dispatch function "decrementReferenceCount" to button pClassName of card kClassStorage
+      # if --referenceCount == 0 then
+      dispatch function "decrementReferenceCount" to tClassID
       if the result is 0 then
-         delete button pClassName of card kClassStorage
+         delete tClassID
       else
          throw "Class" && pClassName && "is still in use, so can't be deleted"
       end if
@@ -95,8 +129,10 @@ end incrementReferenceCount
 
 function newObject pClass, pName, pType
    local tNewObject
+   local tClassID
    
-   if exists(button pClass of card "Classes") then
+   put classIDFromName(pName) into tClassID
+   if tClassID is not empty then
       # this switch statment exists because we can't say create pType
       switch pType
          case "stack"
@@ -107,11 +143,11 @@ function newObject pClass, pName, pType
             break
          case "background"
             set the backgroundBehavior of the templategroup to true
+         default
          case "group"
             put newGroup(pName) into tNewObject
             reset the templategroup
             break
-         default
          case "button"
             put newButton(pName) into tNewObject
             break
@@ -131,7 +167,7 @@ function newObject pClass, pName, pType
             put newPlayer(pName) into tNewObject
             break
       end switch
-      set the behavior of tNewObject to the long id of button pClass of card kClassStorage
+      set the behavior of tNewObject to tClassID
       
       # call the class constructors in order
       invokeConstructorsOf tNewObject
@@ -154,7 +190,7 @@ private command invokeConstructorsOf pObject
    
    # call the class constructors in order
    repeat for each line tClass in tClassList
-      dispatch "constructor" to tClass
+      dispatch the short name of tClass to tClass
    end repeat
 end invokeConstructorsOf
 
@@ -205,18 +241,6 @@ private function newPlayer pName
    return the long id of it
 end newPlayer
 
-# example class constructor
-command constructor
-   # pass up the behavior chain first
-   if the behavior of me is not empty then
-      dispatch "constructor" to the behavior of me
-   end if
-   # then do the most local constructor tasks
-   if the id of the target is the id of this me then
-      # put the short name of me && param(0) && the id of the target & cr after msg
-   end if
-end constructor
-
 # MDW 2020.08.04: deleting the owner object doesn't seem right
 on deleteObject pObject
    if exists(pObject) then
@@ -225,25 +249,13 @@ on deleteObject pObject
       delete pObject
    else
       # Maybe we got just an object name?
-      if exists(button pObject) then
+      if exists(control pObject) then
          deleteObject(the long id of group pObject)
       else
          throw "Object " & pObject & ": no such object"
       end if
    end if
 end deleteObject
-
-# example class destructor
-command destructor
-   # do the local destructor tasks first
-   if the id of the target is the id of this me then
-      # put the short name of me && param(0) && the id of the target & cr after msg
-   end if
-   # then pass up the message chain
-   if the behavior of me is not empty then
-      dispatch "destructor" to the behavior of me
-   end if
-end destructor
 
 function messageObject pObject, pMethod
    local tParams
@@ -272,8 +284,11 @@ end messageObject
 --> introspection
 
 function isObject? pObject
+   local tClassID
+   
    if exists(pObject) and exists(the behavior of pObject) then
-      if exists( button (the short name of the behavior of pObject) of card kClassStorage) then
+      put classIDFromName(the short name of the behavior of pObject) into tClassID
+      if tClassID is not empty then
          return true
       end if
    end if
@@ -297,13 +312,13 @@ function isObjectOfClass? pObject, pClass
 end isObjectOfClass?
 
 # set the class of an existing control
-on setClassForControl pControlID, pClassLongID
-   if exists(pControlID) then
-      if exists(pClassLongID) then
-         set the behavior of pControlID to pClassLongID
-      end if
-   end if      
-end setClassForControl
+--on setClassForControl pControlID, pClassLongID
+--   if exists(pControlID) then
+--      if exists(pClassLongID) then
+--         set the behavior of pControlID to pClassLongID
+--      end if
+--   end if      
+--end setClassForControl
 
 # OOP-engine
 ############################################

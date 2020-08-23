@@ -23,6 +23,10 @@ command constructor
    --put the id of the target && the id of this me && param(0) & cr after msg
 end constructor
 
+command particle
+   --put the id of the target && the id of this me && param(0) & cr after msg
+end particle
+
 command destructor
    --put param(0) & cr after msg
 end destructor
