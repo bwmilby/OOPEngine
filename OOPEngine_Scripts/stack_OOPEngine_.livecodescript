@@ -190,7 +190,7 @@ private command invokeConstructorsOf pObject
    
    # call the class constructors in order
    repeat for each line tClass in tClassList
-      dispatch the short name of tClass to tClass
+      dispatch the short name of tClass to pObject
    end repeat
 end invokeConstructorsOf
 
