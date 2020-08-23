@@ -1,0 +1,160 @@
+# LinkedList class
+# this implements a Singly-linked List class
+
+local sListArray
+local sCount
+local sFirst, sLast
+
+# each entry has
+# an object
+# a pointer to the next entry
+
+command LinkedList pParam
+   put param(0) && pParam & cr after msg
+   put 0 into sCount
+   put 1 into sFirst
+   put 1 into sLast
+end LinkedList
+
+private function List.Keys
+   local tKeys
+   
+   put the keys of sListArray into tKeys
+   filter tKeys without empty
+   return tkeys
+end List.Keys
+
+private function nextPointerOfIndex pIndex
+   return sListArray[pIndex]["next"]
+end nextPointerOfIndex
+
+private command setNextPointerOfIndex pIndex, pNextIndex
+   put pNextIndex into sListArray[pIndex]["next"]
+end setNextPointerOfIndex
+
+private function objectOfIndex pIndex
+   return sListArray[pIndex]["object"]
+end objectOfIndex
+
+private command setObjectOfIndex pIndex, pObject
+    put pObject into sListArray[pIndex]["object"]
+end setObjectOfIndex
+
+private function List.IndexOf pObject
+   local tKeys
+   local tIndex, tFoundIndex
+   
+   put 0 into tFoundIndex
+   put List.Keys() into tKeys
+   repeat for each line tKey in tKeys
+      if pObject is objectOfIndex(tKey) then
+         put tKey into tFoundIndex
+         exit repeat
+      end if
+   end repeat
+   return tFoundIndex
+end List.IndexOf
+
+# None of the public handlers directly access sListArray
+
+function List.Head
+   return objectOfIndex(sFirst)
+end List.Head
+
+function List.Tail
+   return objectOfIndex(sLast-1)
+end List.Tail
+
+/**
+* Given an object, find it in the chain
+* Then return the index of the next entry in the chain
+*/
+private function nextPointerOfObject pObject
+   local tIndex
+   local tNextPointer
+   
+   if pObject is not empty then
+      put List.IndexOf(pObject) into tIndex
+      if tIndex is not 0 then
+         put nextPointerOfIndex(tIndex) into tNextPointer
+      end if
+   end if
+   return tNextPointer
+end nextPointerOfObject
+
+command List.Add pObject, pAfterObject
+   local tIndex
+   local tNextPointer
+   
+   if pAfterObject is not empty then
+      # find the object we want to link from
+      put List.IndexOf(pAfterObject) into tIndex
+      if tIndex is not 0 then
+         # store what it's pointing to
+         put nextPointerOfIndex(tIndex) into tNextPointer
+      end if
+   else
+      put sLast-1 into tIndex
+   end if
+   
+   # add the new object
+   setObjectOfIndex sLast, pObject
+   # point to what the original link pointed to
+   setNextPointerOfIndex sLast, tNextPointer
+   
+   # now fix the afterObject pointer to point to the new entry
+   if tIndex is not 0 then
+      setNextPointerOfIndex tIndex, sLast
+   end if
+   add 1 to sLast
+end List.Add
+
+command List.Delete pObject
+   local tNextPointer
+   local tIndex, tObjectIndex, tPreviousIndex
+   local tKeys
+   
+   put 0 into tIndex
+   put List.IndexOf(pObject) into tObjectIndex
+   
+   put List.PreviousLinkOf(tIndex) into tPreviousIndex
+   
+   put nextPointerOfObject(pObject) into tNextPointer
+   
+   setNextPointerOfIndex tPreviousIndex, tNextPointer
+   # finally remove the object from the array
+   delete variable sListArray[tObjectIndex]
+   if tObjectIndex is sFirst then
+      add 1 to sFirst
+   end if
+end List.Delete
+
+private function List.PreviousLinkOf pIndex
+   local tKeys
+   local tPreviousIndex
+   
+   # find the previous entry in the list
+   put List.Keys() into tKeys
+   repeat for each line tKey in tKeys
+      add 1 to pIndex
+      if pIndex is nextPointerOfIndex(tKey) then
+         put pIndex into tPreviousIndex
+         exit repeat
+      end if
+   end repeat
+   return tPreviousIndex
+end List.PreviousLinkOf
+# debugging
+
+function WalkTheList
+   local tList
+   local tKeys
+   
+   put List.Keys() into tKeys
+   repeat for each line tKey in tKeys
+      put tKey && "=" && objectOfIndex(tKey) && "=>" && nextPointerOfIndex(tKey) & cr after msg
+   end repeat
+   return tList
+end WalkTheList
+
+
