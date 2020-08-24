@@ -19,9 +19,11 @@ Script "stack_OOPEngine_"
 # added class constructors and destructors
 # there is now a Classes card for classes expected to be in general use
 # local classes are checked first: if no match then the global classes are checked
+# v1.05 fixed newObject to create the class name rather than the object name
+# also changed the invokeConstructorsOf call to dispatch to the object instead of the behavior
 ###############################
 
-constant kVersion = 1.04
+constant kVersion = 1.05
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
 
@@ -131,7 +133,7 @@ function newObject pClass, pName, pType
    local tNewObject
    local tClassID
    
-   put classIDFromName(pName) into tClassID
+   put classIDFromName(pClass) into tClassID
    if tClassID is not empty then
       # this switch statment exists because we can't say create pType
       switch pType
@@ -170,14 +172,15 @@ function newObject pClass, pName, pType
       set the behavior of tNewObject to tClassID
       
       # call the class constructors in order
-      invokeConstructorsOf tNewObject
+      invokeConstructorsOf tNewObject, param(4)
       return tNewObject
    else
       throw "Class " & pClass & ": no such class"
    end if
 end newObject
 
-private command invokeConstructorsOf pObject
+# Brian's list constructor
+private command invokeConstructorsOf pObject, pParams
    # get the behavior chain for the constructors
    local tClass, tClassList
    put the behavior of pObject into tClass
@@ -190,7 +193,7 @@ private command invokeConstructorsOf pObject
    
    # call the class constructors in order
    repeat for each line tClass in tClassList
-      dispatch the short name of tClass to pObject
+      dispatch the short name of tClass to pObject with pParams
    end repeat
 end invokeConstructorsOf
 
