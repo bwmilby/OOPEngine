@@ -11,15 +11,16 @@ Script "stack_OOPEngine_"
 
 # original by Håkan Liljegren 2012
 # modified by Mark Wieder 2020
+# modified by Brian Milby 2020
 
-# classes are buttons, objects are groups
+# classes are buttons or stacks, objects are groups by default
 # dispatch has a tristate return value: handled, passed, unhandled
 # added newClass and deleteClass operators
 # added reference count for class deletion
 # added class constructors and destructors
 ###############################
 
-constant kVersion = 1.02
+constant kVersion = 1.1.0
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
 local sClassA -- index of class names to button long id
@@ -41,6 +42,21 @@ command registerClasses pCard, pUpdateClasses
       put tLongID into sClassA[tName]
    end repeat
 end registerClasses
+
+# Register a specific class, either a button or a stack
+command registerClass pClassObject, pUpdateClass
+   local tName, tLongID
+   if not exists(pClassObject) then
+      throw "class object" && pClassObject && "not found"
+   end if
+   put the short name of pClassObject into tName
+   put the long id of pClassObject into tLongID
+   if sClassA[tName] is not empty and pUpdateClass is not true \
+         and sClassA[tName] is not tLongID then
+      throw "class" && tName && "already exists in index"
+   end if
+   put tLongID into sClassA[tName]
+end registerClass
 
 function newClass pClassName, pSuperClass
    if exists(button pClassName of card kClassStorage) then
