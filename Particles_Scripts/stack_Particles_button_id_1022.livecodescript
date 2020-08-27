@@ -19,9 +19,10 @@ local _lifeSpan
 # Base class for particles
 #
 
-command constructor
-   --put the id of the target && the id of this me && param(0) & cr after msg
-end constructor
+# constructor
+command particle
+   # put the short name of this me && param(0) && the id of the target & cr after msg
+end particle
 
 command particle
    --put the id of the target && the id of this me && param(0) & cr after msg

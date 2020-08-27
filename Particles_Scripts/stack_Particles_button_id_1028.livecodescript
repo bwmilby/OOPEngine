@@ -16,6 +16,7 @@ Script "stack_Particles_button_id_1028"
 
 local _gravity
 
+# constructor
 command GravityParticle
    put the id of the target && the id of this me && param(0) & cr after msg
 end GravityParticle
@@ -34,8 +35,20 @@ function gravity
   return _gravity
 end gravity
 
-on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
-   --put the id of the target && the id of this me && param(0) & cr after msg
+command destructor
+   local tSuperClass
+   put the behavior of this me into tSuperClass
+   --
+   # do the local destructor tasks first
+   # put the short name of this me && param(0) && the id of the target & cr after msg
+   --
+   # then pass up the message chain
+   if tSuperClass is not empty then
+      pass destructor
+   end if
+end destructor
+
+command birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
    if pGravity is empty then
       set the gravity of me to random(16)
    else
@@ -44,8 +57,7 @@ on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pGravity
    pass birth
 end birth
 
-on animate
-   --put the id of the target && the id of this me && param(0) & cr after msg
+command animate
    set the dy of me to the dy of me + _gravity
    # Call superclass animate
    pass animate

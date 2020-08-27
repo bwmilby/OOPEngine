@@ -11,8 +11,9 @@ Script "stack_OOPEngine_"
 
 # original by Håkan Liljegren 2012
 # modified by Mark Wieder 2020
+# modified by Brian Milby 2020
 
-# classes are buttons, objects by default are groups
+# classes are buttons or stacks, objects are groups by default
 # dispatch has a tristate return value: handled, passed, unhandled
 # added newClass and deleteClass operators
 # added reference count for class deletion
@@ -23,9 +24,10 @@ Script "stack_OOPEngine_"
 # also changed the invokeConstructorsOf call to dispatch to the object instead of the behavior
 ###############################
 
-constant kVersion = 1.05
+constant kVersion = 1.1.0
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
+local sClassA -- index of class names to button long id
 
 function OOPversion
    return "OOP Engine version" && kVersion
@@ -66,6 +68,36 @@ private function classIDFromName pClassName
    return tClassID
 end classIDFromName
 
+# Add classes from specified card to class index
+command registerClasses pCard, pUpdateClasses
+   local tName, tLongID
+   repeat with tID=1 to the number of buttons on pCard
+      put the short name of button tID of pCard into tName
+      put the long id of button tID of pCard into tLongID
+      if sClassA[tName] is not empty and pUpdateClasses is not true \
+            and sClassA[tName] is not tLongID then
+         throw "class" && tName && "already exists in index"
+      end if
+      put tLongID into sClassA[tName]
+   end repeat
+end registerClasses
+
+# Register a specific class, either a button or a stack
+command registerClass pClassObject, pUpdateClass
+   local tName, tLongID
+   if not exists(pClassObject) then
+      throw "class object" && pClassObject && "not found"
+   end if
+   put the short name of pClassObject into tName
+   put the long id of pClassObject into tLongID
+   if sClassA[tName] is not empty and pUpdateClass is not true \
+         and sClassA[tName] is not tLongID then
+      throw "class" && tName && "already exists in index"
+   end if
+   put tLongID into sClassA[tName]
+end registerClass
+
+
 function newClass pClassName, pSuperClass
    local tClassID
    
@@ -77,7 +109,8 @@ function newClass pClassName, pSuperClass
       if pSuperClass is not empty then
          set the behavior of control pClassName to the long id of control pSuperClass of card kClassStorage of me
       end if
-      return the id of control pClassName of card kClassStorage of me
+      put the long id of button pClassName of card kClassStorage into sClassA[pClassName]
+      return the id of button pClassName of card kClassStorage of me
    end if
 end newClass
 
@@ -99,7 +132,9 @@ command deleteClass pClassName
       # if --referenceCount == 0 then
       dispatch function "decrementReferenceCount" to tClassID
       if the result is 0 then
-         delete tClassID
+         --delete tClassID
+         delete button pClassName of card kClassStorage
+         delete variable sClassA[pClassName]
       else
          throw "Class" && pClassName && "is still in use, so can't be deleted"
       end if
@@ -130,11 +165,12 @@ command incrementReferenceCount
 end incrementReferenceCount
 
 function newObject pClass, pName, pType
-   local tNewObject
+   local tNewObject, tClassList, tSuperClass
    local tClassID
    
    put classIDFromName(pClass) into tClassID
-   if tClassID is not empty then
+   if sClassA[pClass] is not empty then
+--   if tClassID is not empty then
       # this switch statment exists because we can't say create pType
       switch pType
          case "stack"
@@ -169,11 +205,35 @@ function newObject pClass, pName, pType
             put newPlayer(pName) into tNewObject
             break
       end switch
-      set the behavior of tNewObject to tClassID
-      
+--      set the behavior of tNewObject to tClassID
+       set the behavior of tNewObject to sClassA[pClass]
+     
       # call the class constructors in order
       invokeConstructorsOf tNewObject, param(4)
       return tNewObject
+
+   if sClassA[pClass] is not empty then
+--      set the visible of the templategroup to false # Make it "truly" invisible
+--      set the margins of the templategroup to 0 # Make it "truly" invisible
+--      if pName is not empty then
+--         create group pName
+--      end if
+--      put the id of the last group into tNewObject
+--      set the behavior of control id tNewObject to sClassA[pClass]
+--      reset the templategroup
+      # call the class constructors in order
+
+--      put pClass into tClassList
+--      put the behavior of sClassA[pClass] into tSuperClass
+ --     repeat while tSuperClass is not empty
+--         put the short name of tSuperClass & lf before tClassList
+--         put the behavior of tSuperClass into tSuperClass
+--      end repeat
+--      repeat for each line tClass in tClassList
+--         dispatch tClass to control id tNewObject
+--      end repeat
+--      return the long id of control id tNewObject
+
    else
       throw "Class " & pClass & ": no such class"
    end if
@@ -210,6 +270,8 @@ private function newCard pName
 end newCard
 
 private function newGroup pName
+      set the visible of the templategroup to false # Make it "truly" invisible
+      set the margins of the templategroup to 0 # Make it "truly" invisible
    create group pName
    return the long id of it
 end newGroup
@@ -243,6 +305,12 @@ private function newPlayer pName
    create player pName
    return the long id of it
 end newPlayer
+
+# example class constructor
+# the handler names should be the same as the class name
+command constructor
+   # put the short name of this me && param(0) && the id of the target & cr after msg
+end constructor
 
 # MDW 2020.08.04: deleting the owner object doesn't seem right
 on deleteObject pObject
@@ -290,8 +358,9 @@ function isObject? pObject
    local tClassID
    
    if exists(pObject) and exists(the behavior of pObject) then
-      put classIDFromName(the short name of the behavior of pObject) into tClassID
-      if tClassID is not empty then
+#      put classIDFromName(the short name of the behavior of pObject) into tClassID
+#      if tClassID is not empty then
+      if sClassA[the short name of the behavior of pObject] is not empty then
          return true
       end if
    end if
