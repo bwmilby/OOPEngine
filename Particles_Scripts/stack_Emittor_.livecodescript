@@ -1,4 +1,4 @@
-Script "stack_Emittor_"
+﻿script "Emittor"
 
 /*
 # Name: stack "Emittor" of stack "Particles"

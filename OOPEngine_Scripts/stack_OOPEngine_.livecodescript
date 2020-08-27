@@ -42,26 +42,28 @@ function superClass
    return tSuperClass
 end superClass
 
-private function classExists pClassName
+private function classExists? pClassName
    local tClassID
    
-   # check for a local class first.
-   # this allows for overriding/overloading the more global classes if desired.
-   if exists(control pClassName of card kClassStorage of the defaultStack) then
-      put the long id of control pClassName of card kClassStorage of the defaultStack into tClassID
-      # if there's nothing locally then check the global classes
-   else if exists(control pClassName of card kClassStorage of me) then
-      put the long id of control pClassName of card kClassStorage of me into tClassID
-   else
-      put empty into tClassID
-   end if
-   return tClassID
-end classExists
+   return classIDFromName(pClassName) is not empty
+   --   # check for a local class first.
+   --   # this allows for overriding/overloading the more global classes if desired.
+   --   if exists(control pClassName of card kClassStorage of the defaultStack) then
+   --      put the long id of control pClassName of card kClassStorage of the defaultStack into tClassID
+   --      # if there's nothing locally then check the global classes
+   --   else if exists(control pClassName of card kClassStorage of me) then
+   --      put the long id of control pClassName of card kClassStorage of me into tClassID
+   --   else
+   --      put empty into tClassID
+   --   end if
+   --   return tClassID
+end classExists?
 
-private function classIDFromName pClassName
+function classIDFromName pClassName
    local tClassID
    
-   put classExists(pClassName) into tClassID
+   put sClassA[pClassName] into tClassID
+   --put classExists(pClassName) into tClassID
    if tClassID is empty then
       throw "Class" && pClassName && "not found"
    end if
@@ -71,14 +73,15 @@ end classIDFromName
 # Add classes from specified card to class index
 command registerClasses pCard, pUpdateClasses
    local tName, tLongID
-   repeat with tID=1 to the number of buttons on pCard
-      put the short name of button tID of pCard into tName
-      put the long id of button tID of pCard into tLongID
-      if sClassA[tName] is not empty and pUpdateClasses is not true \
-            and sClassA[tName] is not tLongID then
-         throw "class" && tName && "already exists in index"
-      end if
-      put tLongID into sClassA[tName]
+   repeat with tID=1 to the number of buttons of pCard
+      registerClass the long id of button tID of pCard, false
+      --      put the short name of button tID of pCard into tName
+      --      put the long id of button tID of pCard into tLongID
+      --      if sClassA[tName] is not empty and pUpdateClasses is not true \
+      --            and sClassA[tName] is not tLongID then
+      --         throw "class" && tName && "already exists in index"
+      --      end if
+      --      put tLongID into sClassA[tName]
    end repeat
 end registerClasses
 
@@ -97,11 +100,18 @@ command registerClass pClassObject, pUpdateClass
    put tLongID into sClassA[tName]
 end registerClass
 
+function isAClass? pName
+   return classIDFromName(pName) is not empty
+end isAClass?
+
+--function classID pName
+--   return sClassA[pName]
+--end classID
 
 function newClass pClassName, pSuperClass
    local tClassID
    
-   if classExists(pClassName) then
+   if classExists?(pClassName) then
       throw "class" && pClassName && "already exists"
    else
       go card kClassStorage

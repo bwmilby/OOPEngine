@@ -1,7 +1,7 @@
 Script "stack_Particles_button_id_1023"
 
 /*
-# Name: button "Emittor" of card "Classes" of stack "Particles"
+# Name: button "Emittorx" of card "Classes" of stack "Particles"
 # ID: button id 1023 of card id 1004 of stack "Particles"
 */
 
