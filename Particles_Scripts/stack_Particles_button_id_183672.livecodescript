@@ -28,7 +28,7 @@ getProp fuzziness
    return _fuzziness
 end fuzziness
 
-on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pFuzziness
+command birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pFuzziness
    if pfuzziness is empty then
       set the fuzziness of me to 6
    else
@@ -37,7 +37,7 @@ on birth pX, pY, pdX, pdY, pLifeSpan, pParticleSource, pFuzziness
    pass birth
 end birth
 
-on animate
+command animate
    set the dy of me to the dy of me + random(_fuzziness)-_fuzziness2
    set the dx of me to the dx of me + random(_fuzziness)-_fuzziness2
    # Call superclass animate

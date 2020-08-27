@@ -16,14 +16,19 @@ on preOpenCard
    end repeat
    delete last char of tImgList
    set the text of button "imageSource" to tImgList
+   registerClasses the long id of card "Classes" of me, false
 end preOpenCard
 
 on startSimulation
    local tImageName
    local tParticleType
    local tPoints
+   local tNewObject
+   
    set the acceleratedRendering of this stack to true # Oh boy, we need this!
-   put the long id of button "Emittor" of card "Classes" into _emittor
+   # create an Emittor object from the Emittor class
+   put newObject("Emittor", "Emittor", "button") into _emittor
+   
    dispatch "fadeParticlesOverLife" to _emittor with the hilite of button "Fade Particles over Life"
    put the hilitedText of button "imageSource" into tImageName
    put the hilitedText of button "particleType" into tParticleType
@@ -63,11 +68,11 @@ on runSimulation
          set the emittorType of _emittor to empty
          set the emitY of _emittor to max(item 2 of the mouseLoc, 150)
       end if      
-      send "animate" to _emittor
+      dispatch "animate" to _emittor
       send "runSimulation" to me in 0 milliseconds
    else
       if the particleCount of _emittor > 0 then
-         send "animate" to _emittor
+         dispatch "animate" to _emittor
          send "runSimulation" to me in 0 milliseconds
       else
          set the acceleratedRendering of this stack to false

@@ -1,8 +1,8 @@
-Script "stack_Particles_button_id_1023"
+﻿script "Emittor"
 
 /*
-# Name: button "Emittorx" of card "Classes" of stack "Particles"
-# ID: button id 1023 of card id 1004 of stack "Particles"
+# Name: stack "Emittor" of stack "Particles"
+# ID: stack "Emittor" of stack "Particles"
 */
 
 
@@ -169,3 +169,4 @@ end particleType
 getProp particleType
    return _particleClass
 end particleType
+
