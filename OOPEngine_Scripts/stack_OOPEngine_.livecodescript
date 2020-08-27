@@ -170,7 +170,7 @@ function newObject pClass, pName, pType
    
    put classIDFromName(pClass) into tClassID
    if sClassA[pClass] is not empty then
---   if tClassID is not empty then
+      --   if tClassID is not empty then
       # this switch statment exists because we can't say create pType
       switch pType
          case "stack"
@@ -205,35 +205,35 @@ function newObject pClass, pName, pType
             put newPlayer(pName) into tNewObject
             break
       end switch
---      set the behavior of tNewObject to tClassID
-       set the behavior of tNewObject to sClassA[pClass]
-     
+      --      set the behavior of tNewObject to tClassID
+      set the behavior of tNewObject to sClassA[pClass]
+      
       # call the class constructors in order
       invokeConstructorsOf tNewObject, param(4)
       return tNewObject
-
-   if sClassA[pClass] is not empty then
---      set the visible of the templategroup to false # Make it "truly" invisible
---      set the margins of the templategroup to 0 # Make it "truly" invisible
---      if pName is not empty then
---         create group pName
---      end if
---      put the id of the last group into tNewObject
---      set the behavior of control id tNewObject to sClassA[pClass]
---      reset the templategroup
+      
+      --if sClassA[pClass] is not empty then
+      --      set the visible of the templategroup to false # Make it "truly" invisible
+      --      set the margins of the templategroup to 0 # Make it "truly" invisible
+      --      if pName is not empty then
+      --         create group pName
+      --      end if
+      --      put the id of the last group into tNewObject
+      --      set the behavior of control id tNewObject to sClassA[pClass]
+      --      reset the templategroup
       # call the class constructors in order
-
---      put pClass into tClassList
---      put the behavior of sClassA[pClass] into tSuperClass
- --     repeat while tSuperClass is not empty
---         put the short name of tSuperClass & lf before tClassList
---         put the behavior of tSuperClass into tSuperClass
---      end repeat
---      repeat for each line tClass in tClassList
---         dispatch tClass to control id tNewObject
---      end repeat
---      return the long id of control id tNewObject
-
+      
+      --      put pClass into tClassList
+      --      put the behavior of sClassA[pClass] into tSuperClass
+      --     repeat while tSuperClass is not empty
+      --         put the short name of tSuperClass & lf before tClassList
+      --         put the behavior of tSuperClass into tSuperClass
+      --      end repeat
+      --      repeat for each line tClass in tClassList
+      --         dispatch tClass to control id tNewObject
+      --      end repeat
+      --      return the long id of control id tNewObject
+      
    else
       throw "Class " & pClass & ": no such class"
    end if
