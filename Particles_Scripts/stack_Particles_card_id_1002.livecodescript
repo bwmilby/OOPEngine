@@ -16,7 +16,6 @@ on preOpenCard
    end repeat
    delete last char of tImgList
    set the text of button "imageSource" to tImgList
-   registerClasses the long id of card "Classes" of me, false
 end preOpenCard
 
 on startSimulation
