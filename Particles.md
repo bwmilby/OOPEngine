@@ -73,10 +73,6 @@
 * ID: button id 1022 of card id 1004 of stack "Particles"
 * [stack_Particles_button_id_1022](./~/Dropbox/OOPEngine/Particles_Scripts/stack_Particles_button_id_1022.livecodescript)
 
-**button "Emittorx" of card "Classes" of stack "Particles"**
-* ID: button id 1023 of card id 1004 of stack "Particles"
-* [stack_Particles_button_id_1023](./~/Dropbox/OOPEngine/Particles_Scripts/stack_Particles_button_id_1023.livecodescript)
-
 **button "GravityParticle" of card "Classes" of stack "Particles"**
 * ID: button id 1028 of card id 1004 of stack "Particles"
 * Behavior: button id 1022 of stack "Particles"

@@ -46,24 +46,12 @@ private function classExists? pClassName
    local tClassID
    
    return classIDFromName(pClassName) is not empty
-   --   # check for a local class first.
-   --   # this allows for overriding/overloading the more global classes if desired.
-   --   if exists(control pClassName of card kClassStorage of the defaultStack) then
-   --      put the long id of control pClassName of card kClassStorage of the defaultStack into tClassID
-   --      # if there's nothing locally then check the global classes
-   --   else if exists(control pClassName of card kClassStorage of me) then
-   --      put the long id of control pClassName of card kClassStorage of me into tClassID
-   --   else
-   --      put empty into tClassID
-   --   end if
-   --   return tClassID
 end classExists?
 
 function classIDFromName pClassName
    local tClassID
    
    put sClassA[pClassName] into tClassID
-   --put classExists(pClassName) into tClassID
    if tClassID is empty then
       throw "Class" && pClassName && "not found"
    end if
@@ -75,13 +63,6 @@ command registerClasses pCard, pUpdateClasses
    local tName, tLongID
    repeat with tID=1 to the number of buttons of pCard
       registerClass the long id of button tID of pCard, false
-      --      put the short name of button tID of pCard into tName
-      --      put the long id of button tID of pCard into tLongID
-      --      if sClassA[tName] is not empty and pUpdateClasses is not true \
-      --            and sClassA[tName] is not tLongID then
-      --         throw "class" && tName && "already exists in index"
-      --      end if
-      --      put tLongID into sClassA[tName]
    end repeat
 end registerClasses
 
@@ -103,10 +84,6 @@ end registerClass
 function isAClass? pName
    return classIDFromName(pName) is not empty
 end isAClass?
-
---function classID pName
---   return sClassA[pName]
---end classID
 
 function newClass pClassName, pSuperClass
    local tClassID
@@ -142,7 +119,6 @@ command deleteClass pClassName
       # if --referenceCount == 0 then
       dispatch function "decrementReferenceCount" to tClassID
       if the result is 0 then
-         --delete tClassID
          delete button pClassName of card kClassStorage
          delete variable sClassA[pClassName]
       else
@@ -215,35 +191,11 @@ function newObject pClass, pName, pType
             put newPlayer(pName) into tNewObject
             break
       end switch
-      --      set the behavior of tNewObject to tClassID
       set the behavior of tNewObject to sClassA[pClass]
       
       # call the class constructors in order
       invokeConstructorsOf tNewObject, param(4)
       return tNewObject
-      
-      --if sClassA[pClass] is not empty then
-      --      set the visible of the templategroup to false # Make it "truly" invisible
-      --      set the margins of the templategroup to 0 # Make it "truly" invisible
-      --      if pName is not empty then
-      --         create group pName
-      --      end if
-      --      put the id of the last group into tNewObject
-      --      set the behavior of control id tNewObject to sClassA[pClass]
-      --      reset the templategroup
-      # call the class constructors in order
-      
-      --      put pClass into tClassList
-      --      put the behavior of sClassA[pClass] into tSuperClass
-      --     repeat while tSuperClass is not empty
-      --         put the short name of tSuperClass & lf before tClassList
-      --         put the behavior of tSuperClass into tSuperClass
-      --      end repeat
-      --      repeat for each line tClass in tClassList
-      --         dispatch tClass to control id tNewObject
-      --      end repeat
-      --      return the long id of control id tNewObject
-      
    else
       throw "Class " & pClass & ": no such class"
    end if
@@ -368,8 +320,6 @@ function isObject? pObject
    local tClassID
    
    if exists(pObject) and exists(the behavior of pObject) then
-#      put classIDFromName(the short name of the behavior of pObject) into tClassID
-#      if tClassID is not empty then
       if sClassA[the short name of the behavior of pObject] is not empty then
          return true
       end if
@@ -392,15 +342,6 @@ function isObjectOfClass? pObject, pClass
       return false
    end if
 end isObjectOfClass?
-
-# set the class of an existing control
---on setClassForControl pControlID, pClassLongID
---   if exists(pControlID) then
---      if exists(pClassLongID) then
---         set the behavior of pControlID to pClassLongID
---      end if
---   end if      
---end setClassForControl
 
 # OOP-engine
 ############################################
