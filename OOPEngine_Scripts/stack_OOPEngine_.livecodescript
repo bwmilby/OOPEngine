@@ -24,6 +24,7 @@ constant kVersion = 1.1.0
 constant kClassStorage = "Classes"
 constant kAllowCascadingDeletes = false
 local sClassA -- index of class names to button long id
+local sClassListA -- index of class hierarchy for each class
 
 function OOPversion
    return "OOP Engine version" && kVersion
@@ -32,14 +33,8 @@ end OOPversion
 # Add classes from specified card to class index
 command registerClasses pCard, pUpdateClasses
    local tName, tLongID
-   repeat with tID=1 to the number of buttons on pCard
-      put the short name of button tID of pCard into tName
-      put the long id of button tID of pCard into tLongID
-      if sClassA[tName] is not empty and pUpdateClasses is not true \
-            and sClassA[tName] is not tLongID then
-         throw "class" && tName && "already exists in index"
-      end if
-      put tLongID into sClassA[tName]
+   repeat with tID=1 to the number of buttons of pCard
+      registerClass the long id of button tID of pCard, pUpdateClasses
    end repeat
 end registerClasses
 
@@ -56,6 +51,7 @@ command registerClass pClassObject, pUpdateClass
       throw "class" && tName && "already exists in index"
    end if
    put tLongID into sClassA[tName]
+   delete variable sClassListA[tName]
 end registerClass
 
 function newClass pClassName, pSuperClass
@@ -117,33 +113,73 @@ command incrementReferenceCount
    set the referenceCount of the target to tReferenceCount
 end incrementReferenceCount
 
-function newObject pClass, pName
+function newObject pClass, pName, pType, pParams
    local tNewObject, tClassList, tSuperClass
    
    if sClassA[pClass] is not empty then
-      set the visible of the templategroup to false # Make it "truly" invisible
-      set the margins of the templategroup to 0 # Make it "truly" invisible
-      if pName is not empty then
-         create group pName
-      end if
-      put the id of the last group into tNewObject
-      set the behavior of control id tNewObject to sClassA[pClass]
-      reset the templategroup
+      switch pType
+         case "stack"
+            create stack pName
+            break
+         case "card"
+            create card pName
+            break
+         case "button"
+            create button pName
+            break
+         case "field"
+            create field pName
+            break
+         case "image"
+            create image pName
+            break
+         case "scrollbar"
+            create scrollbar pName
+            break
+         case "graphic"
+            create graphic pName
+            break
+         case "player"
+            create player pName
+            break
+         case "background"
+            set the backgroundBehavior of the templategroup to true
+            # fall through
+         case "group"
+         default
+            set the visible of the templategroup to false # Make it "truly" invisible
+            set the margins of the templategroup to 0 # Make it "truly" invisible
+            create group pName
+            reset the templategroup
+            break
+      end switch
+      put the long id of it into tNewObject
+      set the behavior of tNewObject to sClassA[pClass]
       # call the class constructors in order
+      put _getClassList(pClass) into tClassList
+      repeat for each line tClass in tClassList
+         dispatch tClass to tNewObject with pParams
+      end repeat
+      return tNewObject
+   else
+      throw "Class " & pClass & ": no such class"
+   end if
+end newObject
+
+private function _getClassList pClass
+   local tClassList, tSuperClass
+   put sClassListA[pClass] into tClassList
+   if tClassList is empty then
       put pClass into tClassList
       put the behavior of sClassA[pClass] into tSuperClass
       repeat while tSuperClass is not empty
          put the short name of tSuperClass & lf before tClassList
          put the behavior of tSuperClass into tSuperClass
       end repeat
-      repeat for each line tClass in tClassList
-         dispatch tClass to control id tNewObject
-      end repeat
-      return the long id of control id tNewObject
-   else
-      throw "Class " & pClass & ": no such class"
+      put tClassList into sClassListA[pClass]
    end if
-end newObject
+   return tClassList
+end _getClassList
 
 # example class constructor
 # the handler names should be the same as the class name
