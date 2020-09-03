@@ -21,10 +21,6 @@ local _lifeSpan
 
 # constructor
 command particle
-   # put the short name of this me && param(0) && the id of the target & cr after msg
-end particle
-
-command particle
    --put the id of the target && the id of this me && param(0) & cr after msg
 end particle
 
@@ -66,13 +62,6 @@ end animate
 function isAlive?
    return _deathMoment > the milliseconds
 end isAlive?
-
---command die
---   put param(0) & cr after msg
---   if _particleID is not empty then
---      delete _particleID
---   end if
---end die
 
 # accessors to make class variables public
 

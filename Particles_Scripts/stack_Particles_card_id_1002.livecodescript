@@ -16,8 +16,14 @@ on preOpenCard
    end repeat
    delete last char of tImgList
    set the text of button "imageSource" to tImgList
-   registerClasses the long id of card "Classes" of me, false
+   put empty into _emittor
 end preOpenCard
+
+on closeCard
+   if _emittor is not empty then
+      deleteObject _emittor
+   end if
+end closeCard
 
 on startSimulation
    local tImageName
@@ -27,7 +33,9 @@ on startSimulation
    
    set the acceleratedRendering of this stack to true # Oh boy, we need this!
    # create an Emittor object from the Emittor class
-   put newObject("Emittor", "Emittor", "button") into _emittor
+   if _emittor is empty then
+      put newObject("Emittor", "Emittor", "button") into _emittor
+   end if
    
    dispatch "fadeParticlesOverLife" to _emittor with the hilite of button "Fade Particles over Life"
    put the hilitedText of button "imageSource" into tImageName
@@ -54,6 +62,7 @@ on stopSimulation
    if exists(_emittor) then
       send "StopEmittor" to _emittor
    end if
+   --put empty into _emittor
    set the acceleratedRendering of this stack to false
 end stopSimulation
 
