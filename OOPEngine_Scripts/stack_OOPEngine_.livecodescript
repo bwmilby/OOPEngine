@@ -24,9 +24,9 @@ Script "stack_OOPEngine_"
 # also changed the invokeConstructorsOf call to dispatch to the object instead of the behavior
 ###############################
 
-constant kVersion = 1.1.0
+constant kVersion = 1.2.0
 constant kClassStorage = "Classes"
-constant kAllowCascadingDeletes = false
+--constant kAllowCascadingDeletes = false
 local sClassA -- index of class names to button long id
 
 function OOPversion
@@ -59,22 +59,21 @@ function classIDFromName pClassName
 end classIDFromName
 
 # Add classes from specified card to class index
-command registerClasses pCard, pUpdateClasses
-   local tName, tLongID
+command registerClasses pCard, pUpdateClasses?
    repeat with tID=1 to the number of buttons of pCard
-      registerClass the long id of button tID of pCard, false
+      registerClass the long id of button tID of pCard, pUpdateClasses?
    end repeat
 end registerClasses
 
 # Register a specific class, either a button or a stack
-command registerClass pClassObject, pUpdateClass
+command registerClass pClassObject, pUpdateClass?
    local tName, tLongID
    if not exists(pClassObject) then
       throw "class object" && pClassObject && "not found"
    end if
    put the short name of pClassObject into tName
    put the long id of pClassObject into tLongID
-   if sClassA[tName] is not empty and pUpdateClass is not true \
+   if sClassA[tName] is not empty and pUpdateClass? is not true \
          and sClassA[tName] is not tLongID then
       throw "class" && tName && "already exists in index"
    end if
@@ -85,76 +84,71 @@ function isAClass? pName
    return classIDFromName(pName) is not empty
 end isAClass?
 
-function newClass pClassName, pSuperClass
-   local tClassID
-   
-   if classExists?(pClassName) then
-      throw "class" && pClassName && "already exists"
-   else
-      go card kClassStorage
-      create button pClassName
-      if pSuperClass is not empty then
-         set the behavior of control pClassName to the long id of control pSuperClass of card kClassStorage of me
-      end if
-      put the long id of button pClassName of card kClassStorage into sClassA[pClassName]
-      return the id of button pClassName of card kClassStorage of me
-   end if
-end newClass
+--function newClass pClassName, pSuperClass
+--   if classExists?(pClassName) then
+--      throw "class" && pClassName && "already exists"
+--   else
+--      go card kClassStorage
+--      create button pClassName
+--      if pSuperClass is not empty then
+--         set the behavior of control pClassName to the long id of control pSuperClass of card kClassStorage of me
+--      end if
+--      put the long id of button pClassName of card kClassStorage into sClassA[pClassName]
+--      return the id of button pClassName of card kClassStorage of me
+--   end if
+--end newClass
 
-command deleteClass pClassName
-   local tSuperClass
-   local tClassID
-   
-   put classIDFromName(pClassName) into tClassID
-   if tClassID is not empty then
-      put the behavior of control pClassName into tSuperClass
-      # not sure if deleting the superclass is a good idea either
-      if kAllowCascadingDeletes then
-         if tSuperClass is not empty then
-            # if no object is using the superclass then recursively delete the superclass
-            deleteClass tSuperClass
-         end if
-      end if
-      # finally delete this class
-      # if --referenceCount == 0 then
-      dispatch function "decrementReferenceCount" to tClassID
-      if the result is 0 then
-         delete button pClassName of card kClassStorage
-         delete variable sClassA[pClassName]
-      else
-         throw "Class" && pClassName && "is still in use, so can't be deleted"
-      end if
-   end if
-end deleteClass
+--command deleteClass pClassName
+--   local tSuperClass
+--   local tClassID
 
-function decrementReferenceCount
-   local tReferenceCount
-   
-   put the referenceCount of the target into tReferenceCount
-   if tReferenceCount > 0 then
-      subtract 1 from tReferenceCount
-      set the referenceCount of the target to tReferenceCount
-   end if
-   return tReferenceCount
-end decrementReferenceCount
+--   put classIDFromName(pClassName) into tClassID
+--   if tClassID is not empty then
+--      put the behavior of control pClassName into tSuperClass
+--      # not sure if deleting the superclass is a good idea either
+--      if kAllowCascadingDeletes then
+--         if tSuperClass is not empty then
+--            # if no object is using the superclass then recursively delete the superclass
+--            deleteClass tSuperClass
+--         end if
+--      end if
+--      # finally delete this class
+--      dispatch function "decrementReferenceCount" to tClassID
+--      if the result is 0 then
+--         delete button pClassName of card kClassStorage
+--         delete variable sClassA[pClassName]
+--      else
+--         throw "Class" && pClassName && "is still in use, so can't be deleted"
+--      end if
+--   end if
+--end deleteClass
 
-command incrementReferenceCount
-   local tReferenceCount
-   
-   put the referenceCount of the target into tReferenceCount
-   if tReferenceCount is empty then
-      put 1 into tReferenceCount
-   else
-      add 1 to tReferenceCount
-   end if
-   set the referenceCount of the target to tReferenceCount
-end incrementReferenceCount
+--function decrementReferenceCountOf pClassID
+--   local tReferenceCount
+
+--   put the referenceCount of pClassID into tReferenceCount
+--   if tReferenceCount > 0 then
+--      subtract 1 from tReferenceCount
+--      set the referenceCount of pClassID to tReferenceCount
+--   end if
+--   return tReferenceCount
+--end decrementReferenceCountOf
+
+--command incrementReferenceCountOf pClassID
+--   local tReferenceCount
+
+--   put the referenceCount of pClassID into tReferenceCount
+--   if tReferenceCount is empty then
+--      put 1 into tReferenceCount
+--   else
+--      add 1 to tReferenceCount
+--   end if
+--   set the referenceCount of pClassID to tReferenceCount
+--end incrementReferenceCountOf
 
 function newObject pClass, pName, pType
    local tNewObject, tClassList, tSuperClass
-   local tClassID
-   
-   put classIDFromName(pClass) into tClassID
+
    if sClassA[pClass] is not empty then
       --   if tClassID is not empty then
       # this switch statment exists because we can't say create pType
@@ -270,11 +264,24 @@ end newPlayer
 
 # example class constructor
 # the handler names should be the same as the class name
-command constructor
+#command constructor
    # put the short name of this me && param(0) && the id of the target & cr after msg
-end constructor
+#end constructor
 
-# MDW 2020.08.04: deleting the owner object doesn't seem right
+# example class destructor
+#command destructor
+   #local tSuperClass
+   #put the behavior of this me into tSuperClass
+   --
+   # do the local destructor tasks first
+   # put the short name of this me && param(0) && the id of the target & cr after msg
+   --
+   # then pass up the message chain
+   #if tSuperClass is not empty then
+      #pass destructor
+   #end if
+#end destructor
+
 on deleteObject pObject
    if exists(pObject) then
       # call the class destructor if it exists
@@ -309,7 +316,7 @@ function messageObject pObject, pMethod
       if it is not "unhandled" then
          return the result
       else
-         throw "Object error: No method " & pMethod & " in class " & className(pObject)
+         throw "Object error: No method " & pMethod & " in class " & classNameOf(pObject)
       end if
    end if
 end messageObject
@@ -317,8 +324,6 @@ end messageObject
 --> introspection
 
 function isObject? pObject
-   local tClassID
-   
    if exists(pObject) and exists(the behavior of pObject) then
       if sClassA[the short name of the behavior of pObject] is not empty then
          return true
@@ -327,16 +332,16 @@ function isObject? pObject
    return false
 end isObject?
 
-function ClassName pObject
+function ClassNameOf pObject
    if isObject?(pObject) then
       return the short name of the behavior of pObject
    else
       return empty
    end if
-end ClassName
+end ClassNameOf
 
 function isObjectOfClass? pObject, pClass
-   if ClassName(pObject) is pClass then
+   if ClassNameOf(pObject) is pClass then
       return true
    else
       return false

@@ -18,7 +18,7 @@ local _gravity
 
 # constructor
 command GravityParticle
-   put the id of the target && the id of this me && param(0) & cr after msg
+   # put the id of the target && the id of this me && param(0) & cr after msg
 end GravityParticle
 
 setProp gravity pGravity
