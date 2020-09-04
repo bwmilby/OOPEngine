@@ -174,7 +174,7 @@ on deleteObject pObject
       delete pObject
    else
       # Maybe we got just an object name?
-      if isObject?(control pObject) then
+      if exists(control pObject) then
          deleteObject(the long id of control pObject)
       else
          throw "Object " & pObject & ": no such object"
