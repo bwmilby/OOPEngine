@@ -54,7 +54,6 @@ end classIDFromName
 
 # Add classes from specified card to class index
 command registerClasses pCard, pUpdateClasses?
-   local tName, tLongID
    repeat with tID=1 to the number of buttons of pCard
       registerClass the long id of button tID of pCard, pUpdateClasses?
    end repeat
@@ -152,21 +151,6 @@ command constructor
 end constructor
 */
 
-on deleteObject pObject
-   if isObject?(pObject) then
-      # call the class destructor if it exists
-      dispatch "destructor" to pObject
-      delete pObject
-   else
-      # Maybe we got just an object name?
-      if isObject?(control pObject) then
-         deleteObject(the long id of control pObject)
-      else
-         throw "Object " & pObject & ": no such object"
-      end if
-   end if
-end deleteObject
-
 # example class destructor
 /*
 command destructor
@@ -182,6 +166,21 @@ command destructor
    end if
 end destructor
 */
+
+on deleteObject pObject
+   if isObject?(pObject) then
+      # call the class destructor if it exists
+      dispatch "destructor" to pObject
+      delete pObject
+   else
+      # Maybe we got just an object name?
+      if isObject?(control pObject) then
+         deleteObject(the long id of control pObject)
+      else
+         throw "Object " & pObject & ": no such object"
+      end if
+   end if
+end deleteObject
 
 function messageObject pObject, pMethod
    local tParams
