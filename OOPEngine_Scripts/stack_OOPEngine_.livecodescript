@@ -23,14 +23,16 @@ Script "stack_OOPEngine_"
 # v1.05 fixed newObject to create the class name rather than the object name
 # also changed the invokeConstructorsOf call to dispatch to the object instead of the behavior
 # v1.2.1 passes all constructor parameters to behaviors
+# v1.2.2 returns uRIP["version"] in OOPVersion
+# and fixes constructor parameter count
 ###############################
 
-constant kVersion = 1.2.1
+constant kVersion = 1.2.2
 constant kClassStorage = "Classes"
 local sClassA -- index of class names to button long id
 
 function OOPversion
-   return "OOP Engine version" && kVersion
+   return "OOP Engine version" && the uRIP["version"] of this stack
 end OOPversion
 
 function superClass
@@ -127,7 +129,7 @@ function newObject pClass, pName, pType
       
       local tParams
       put empty into tParams
-      repeat with i = 3 to the paramCount
+      repeat with i = 4 to the paramCount
          put param(i) & comma & space after tParams
       end repeat
       delete last char of tParams
@@ -244,7 +246,7 @@ on deleteObject pObject
    else
       # Maybe we got just an object name?
       if exists(control pObject) then
-         deleteObject(the long id of group pObject)
+         deleteObject(the long id of control pObject)
       else
          throw "Object " & pObject & ": no such object"
       end if
