@@ -22,11 +22,11 @@ Script "stack_OOPEngine_"
 # local classes are checked first: if no match then the global classes are checked
 # v1.05 fixed newObject to create the class name rather than the object name
 # also changed the invokeConstructorsOf call to dispatch to the object instead of the behavior
+# v1.2.1 passes all constructor parameters to behaviors
 ###############################
 
-constant kVersion = 1.2.0
+constant kVersion = 1.2.1
 constant kClassStorage = "Classes"
---constant kAllowCascadingDeletes = false
 local sClassA -- index of class names to button long id
 
 function OOPversion
@@ -68,6 +68,7 @@ end registerClasses
 # Register a specific class, either a button or a stack
 command registerClass pClassObject, pUpdateClass?
    local tName, tLongID
+   
    if not exists(pClassObject) then
       throw "class object" && pClassObject && "not found"
    end if
@@ -84,73 +85,10 @@ function isAClass? pName
    return classIDFromName(pName) is not empty
 end isAClass?
 
---function newClass pClassName, pSuperClass
---   if classExists?(pClassName) then
---      throw "class" && pClassName && "already exists"
---   else
---      go card kClassStorage
---      create button pClassName
---      if pSuperClass is not empty then
---         set the behavior of control pClassName to the long id of control pSuperClass of card kClassStorage of me
---      end if
---      put the long id of button pClassName of card kClassStorage into sClassA[pClassName]
---      return the id of button pClassName of card kClassStorage of me
---   end if
---end newClass
-
---command deleteClass pClassName
---   local tSuperClass
---   local tClassID
-
---   put classIDFromName(pClassName) into tClassID
---   if tClassID is not empty then
---      put the behavior of control pClassName into tSuperClass
---      # not sure if deleting the superclass is a good idea either
---      if kAllowCascadingDeletes then
---         if tSuperClass is not empty then
---            # if no object is using the superclass then recursively delete the superclass
---            deleteClass tSuperClass
---         end if
---      end if
---      # finally delete this class
---      dispatch function "decrementReferenceCount" to tClassID
---      if the result is 0 then
---         delete button pClassName of card kClassStorage
---         delete variable sClassA[pClassName]
---      else
---         throw "Class" && pClassName && "is still in use, so can't be deleted"
---      end if
---   end if
---end deleteClass
-
---function decrementReferenceCountOf pClassID
---   local tReferenceCount
-
---   put the referenceCount of pClassID into tReferenceCount
---   if tReferenceCount > 0 then
---      subtract 1 from tReferenceCount
---      set the referenceCount of pClassID to tReferenceCount
---   end if
---   return tReferenceCount
---end decrementReferenceCountOf
-
---command incrementReferenceCountOf pClassID
---   local tReferenceCount
-
---   put the referenceCount of pClassID into tReferenceCount
---   if tReferenceCount is empty then
---      put 1 into tReferenceCount
---   else
---      add 1 to tReferenceCount
---   end if
---   set the referenceCount of pClassID to tReferenceCount
---end incrementReferenceCountOf
-
 function newObject pClass, pName, pType
    local tNewObject, tClassList, tSuperClass
-
+   
    if sClassA[pClass] is not empty then
-      --   if tClassID is not empty then
       # this switch statment exists because we can't say create pType
       switch pType
          case "stack"
@@ -187,8 +125,15 @@ function newObject pClass, pName, pType
       end switch
       set the behavior of tNewObject to sClassA[pClass]
       
+      local tParams
+      put empty into tParams
+      repeat with i = 3 to the paramCount
+         put param(i) & comma & space after tParams
+      end repeat
+      delete last char of tParams
+      
       # call the class constructors in order
-      invokeConstructorsOf tNewObject, param(4)
+      invokeConstructorsOf tNewObject, tParams
       return tNewObject
    else
       throw "Class " & pClass & ": no such class"
@@ -226,8 +171,8 @@ private function newCard pName
 end newCard
 
 private function newGroup pName
-      set the visible of the templategroup to false # Make it "truly" invisible
-      set the margins of the templategroup to 0 # Make it "truly" invisible
+   set the visible of the templategroup to false # Make it "truly" invisible
+   set the margins of the templategroup to 0 # Make it "truly" invisible
    create group pName
    return the long id of it
 end newGroup
@@ -262,24 +207,33 @@ private function newPlayer pName
    return the long id of it
 end newPlayer
 
+/*
 # example class constructor
 # the handler names should be the same as the class name
-#command constructor
-   # put the short name of this me && param(0) && the id of the target & cr after msg
+# for instance, for class LinkedList, the script could contain
+# command LinkedList
+*/
+#command constructor pOptionalParameters
+#  put the short name of this me && pOptionalParameters & cr after msg
 #end constructor
 
+/*
 # example class destructor
+# Unlike the constructor, the destructor is simply named "destructor"
+# Note that proper destructor etiquette
+# involves passing the destructor to superclasses
+*/
 #command destructor
-   #local tSuperClass
-   #put the behavior of this me into tSuperClass
-   --
-   # do the local destructor tasks first
-   # put the short name of this me && param(0) && the id of the target & cr after msg
-   --
-   # then pass up the message chain
-   #if tSuperClass is not empty then
-      #pass destructor
-   #end if
+#  local tSuperClass
+#  put the behavior of this me into tSuperClass
+--
+##  do the local destructor tasks first
+#  put the short name of this me && pOptionalParameters & cr after msg
+--
+##  then pass up the message chain
+#  if tSuperClass is not empty then
+#    pass destructor
+#  end if
 #end destructor
 
 on deleteObject pObject
@@ -341,11 +295,7 @@ function ClassNameOf pObject
 end ClassNameOf
 
 function isObjectOfClass? pObject, pClass
-   if ClassNameOf(pObject) is pClass then
-      return true
-   else
-      return false
-   end if
+   return ClassNameOf(pObject) is pClass
 end isObjectOfClass?
 
 # OOP-engine
