@@ -15,12 +15,11 @@ Script "stack_OOPEngine_"
 
 # classes are buttons or stacks, objects are groups by default
 # dispatch has a tristate return value: handled, passed, unhandled
-# added newClass and deleteClass operators
-# added reference count for class deletion
 # added class constructors and destructors
+# v1.2.1 passes all constructor parameters to behaviors
 ###############################
 
-constant kVersion = 1.2.0
+constant kVersion = 1.2.1
 constant kClassStorage = "Classes"
 local sClassA -- index of class names to button long id
 local sClassListA -- index of class hierarchy for each class
@@ -37,10 +36,6 @@ function superClass
    end if
    return tSuperClass
 end superClass
-
-private function classExists? pClassName
-   return sClassA[pClassName] is not empty
-end classExists?
 
 function classIDFromName pClassName
    local tClassID
@@ -75,9 +70,10 @@ command registerClass pClassObject, pUpdateClass?
    delete variable sClassListA[tName]
 end registerClass
 
-function newObject pClass, pName, pType, pParams
-   local tNewObject, tClassList, tSuperClass
-   
+function newObject pClass, pName, pType
+   local tNewObject, tClassList, tSuperClass, tParams
+   --
+   # this switch statment exists because we can't say create pType
    if sClassA[pClass] is not empty then
       switch pType
          case "stack"
@@ -117,10 +113,16 @@ function newObject pClass, pName, pType, pParams
       end switch
       put the long id of it into tNewObject
       set the behavior of tNewObject to sClassA[pClass]
+      # build parameter list for constructor
+      put empty into tParams
+      repeat with i = 4 to the paramCount
+         put param(i) & comma & space after tParams
+      end repeat
+      delete last char of tParams
       # call the class constructors in order
       put _getClassList(pClass) into tClassList
       repeat for each line tClass in tClassList
-         dispatch tClass to tNewObject with pParams
+         dispatch tClass to tNewObject with tParams
       end repeat
       return tNewObject
    else
@@ -143,15 +145,20 @@ private function _getClassList pClass
    return tClassList
 end _getClassList
 
-# example class constructor
-# the handler names should be the same as the class name
+# Example class constructor
+# The handler names should be the same as the class name
+# for instance, for class LinkedList, the script could contain
+# command LinkedList
 /*
 command constructor
    # put the short name of this me && param(0) && the id of the target & cr after msg
 end constructor
 */
 
-# example class destructor
+# Example class destructor
+# Unlike the constructor, the destructor is simply named "destructor"
+# Note that proper destructor etiquette
+# involves passing the destructor to superclasses
 /*
 command destructor
    local tSuperClass
@@ -226,11 +233,7 @@ function ClassNameOf pObject
 end ClassNameOf
 
 function isObjectOfClass? pObject, pClass
-   if ClassNameOf(pObject) is pClass then
-      return true
-   else
-      return false
-   end if
+   return ClassNameOf(pObject) is pClass
 end isObjectOfClass?
 
 # OOP-engine
