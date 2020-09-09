@@ -6,23 +6,23 @@ Script "stack_OOPEngine_"
 */
 
 
-###############################
+##############################################################
 # OOP Engine
-
+#
 # original by Håkan Liljegren 2012
 # modified by Mark Wieder 2020
 # modified by Brian Milby 2020
-
+#
 # classes are buttons or stacks, objects are groups by default
 # dispatch has a tristate return value: handled, passed, unhandled
 # added class constructors and destructors
 # v1.2.1 passes all constructor parameters to behaviors
-###############################
+##############################################################
 
-constant kVersion = 1.2.1
+constant kVersion = 1.2.2
 constant kClassStorage = "Classes"
-local sClassA -- index of class names to button long id
-local sClassListA -- index of class hierarchy for each class
+local sClassA -- map of class name to stack/button long id
+local sClassListA -- map of class name to class hierarchy (for constructor dispatch)
 
 function OOPversion
    return "OOP Engine version" && kVersion
@@ -30,7 +30,7 @@ end OOPversion
 
 function superClass
    local tSuperClass
-   
+   --
    if the behavior of the target is not empty then
       put the behavior of the target into tSuperClass
    end if
@@ -39,7 +39,7 @@ end superClass
 
 function classIDFromName pClassName
    local tClassID
-   
+   --
    put sClassA[pClassName] into tClassID
    if tClassID is empty then
       throw "Class" && pClassName && "not found"
@@ -57,6 +57,7 @@ end registerClasses
 # Register a specific class, either a button or a stack
 command registerClass pClassObject, pUpdateClass?
    local tName, tLongID
+   --
    if not exists(pClassObject) then
       throw "class object" && pClassObject && "not found"
    end if
@@ -73,14 +74,24 @@ end registerClass
 function newObject pClass, pName, pType
    local tNewObject, tClassList, tSuperClass, tParams
    --
-   # this switch statment exists because we can't say create pType
    if sClassA[pClass] is not empty then
+      # this switch statment exists because we can't say create pType
       switch pType
          case "stack"
             create stack pName
             break
          case "card"
             create card pName
+            break
+         case "background"
+            set the backgroundBehavior of the templategroup to true
+            # fall through
+         case "group"
+         default
+            set the visible of the templategroup to false # Make it "truly" invisible
+            set the margins of the templategroup to 0 # Make it "truly" invisible
+            create group pName
+            reset the templategroup
             break
          case "button"
             create button pName
@@ -100,25 +111,17 @@ function newObject pClass, pName, pType
          case "player"
             create player pName
             break
-         case "background"
-            set the backgroundBehavior of the templategroup to true
-            # fall through
-         case "group"
-         default
-            set the visible of the templategroup to false # Make it "truly" invisible
-            set the margins of the templategroup to 0 # Make it "truly" invisible
-            create group pName
-            reset the templategroup
-            break
       end switch
       put the long id of it into tNewObject
       set the behavior of tNewObject to sClassA[pClass]
+      --
       # build parameter list for constructor
       put empty into tParams
       repeat with i = 4 to the paramCount
          put param(i) & comma & space after tParams
       end repeat
       delete last char of tParams
+      --
       # call the class constructors in order
       put _getClassList(pClass) into tClassList
       repeat for each line tClass in tClassList
@@ -132,6 +135,7 @@ end newObject
 
 private function _getClassList pClass
    local tClassList, tSuperClass
+   --
    put sClassListA[pClass] into tClassList
    if tClassList is empty then
       put pClass into tClassList
@@ -145,21 +149,23 @@ private function _getClassList pClass
    return tClassList
 end _getClassList
 
-# Example class constructor
-# The handler names should be the same as the class name
+/*
+# example class constructor
+# the handler names should be the same as the class name
 # for instance, for class LinkedList, the script could contain
 # command LinkedList
-/*
+
 command constructor
    # put the short name of this me && param(0) && the id of the target & cr after msg
 end constructor
 */
 
-# Example class destructor
+/*
+# example class destructor
 # Unlike the constructor, the destructor is simply named "destructor"
 # Note that proper destructor etiquette
 # involves passing the destructor to superclasses
-/*
+
 command destructor
    local tSuperClass
    put the behavior of this me into tSuperClass
@@ -191,14 +197,13 @@ end deleteObject
 
 function messageObject pObject, pMethod
    local tParams
-   local tCommand
-   
+   --
    put empty into tParams
    repeat with i = 3 to the paramCount
       put param(i) & comma & space after tParams
    end repeat
    delete last char of tParams
-   
+   --
    dispatch function pMethod to pObject with tParams
    if it is not "unhandled" then
       return the result
@@ -237,4 +242,4 @@ function isObjectOfClass? pObject, pClass
 end isObjectOfClass?
 
 # OOP-engine
-############################################
+###########################################################################
